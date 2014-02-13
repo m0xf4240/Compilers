@@ -6,8 +6,7 @@ import minijava.node.*;
 
 public class Phase1
 {
-	public Phase1(Typechecker T) {
-
+	public Phase1(Typechecker t){
 
 	}
 
@@ -23,24 +22,36 @@ public class Phase1
 
 	///////////////////////////////////////////////////////////////
 	void process(PProgram n) {
+		System.out.println("[P1PProg]"+n);
+		if (n instanceof AProgram) process((AProgram)n);
+		else 
+			throw new RuntimeException (this.getClass() + 
+					": unexpected subclass " + n.getClass() + " in process(PProgram)");
 
-		process((AProgram) n);
-		/*
-    if (n instanceof AProgram) process((AProgram)n);
-	else 
-            throw new RuntimeException (this.getClass() + 
-                ": unexpected subclass " + n.getClass() + " in process(PProgram)");
-
-        throw new UnsupportedOperationException ();     // remove when method is complete
-		 */
+		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AProgram n) {
-
-		for (PMaindecl p : n.getMaindecl())
+		boolean debug=true;
+		if(debug){
+			System.out.println("[P1AProg]"+n);
+			System.out.println("[P1AProg]"+n.getPublic());				// yields TPublic
+			System.out.println("[P1AProg]"+n.getClasstok());				// yields TClasstok
+			System.out.println("[P1AProg]"+n.getId());				// yields TId
+			System.out.println("[P1AProg]"+n.getLbrace());				// yields TLbrace
+		}
+		
+		//classname doesnt match filename if(n.getId() != ) throw new UnsupportedOperationException ();     
+		
+		if(debug) System.out.println("[P1AProg]"+n.getMaindecl());
+		for (PMaindecl p : n.getMaindecl()){
+			if(debug) System.out.println("[P1AProgMainDecl]"+p);
 			process(p);				// process(PMaindecl)
+		}
+		n.getRbrace();				// yields TRbrace
 
+		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -51,10 +62,12 @@ public class Phase1
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PMaindecl)");
 
+		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AVarMaindecl n) {
+		System.out.println(n);
 		process(n.getPrivacy());			// process(PPrivacy)
 		n.getStatic();				// yields TStatic
 		process(n.getType());			// process(PType)
@@ -128,21 +141,19 @@ public class Phase1
 	}
 
 	///////////////////////////////////////////////////////////////
+	//TODO: return a token?
+	///////////////////////////////////////////////////////////////
 	void process(PPrivacy n) {
 		if (n instanceof APublicPrivacy) process((APublicPrivacy)n);
 		else if (n instanceof ABlankPrivacy) process((ABlankPrivacy)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PPrivacy)");
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
-	void process(APublicPrivacy n) {
-		n.getPublic();				// yields TPublic
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
+	Token process(APublicPrivacy n) {
+		return n.getPublic();				// yields TPublic
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -158,16 +169,22 @@ public class Phase1
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PType)");
 
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
+	//Does this handle arrays?
+	///////////////////////////////////////////////////////////////
 	void process(AType n) {
+		boolean db=false;
+		if(db){System.out.println("[PRO1]"+n);}
 		n.getId();				// yields TId
-		for (PEmptydim p : n.getEmptydim())
+		if(db){System.out.println("[PRO2]"+n.getId());}
+		if(db){System.out.println("[PRO3]"+n.getEmptydim());}
+		for (PEmptydim p : n.getEmptydim()){
+			if(db){System.out.println("[PRO4]"+p);}
 			process(p);				// process(PEmptydim)
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
+		}
+		//throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////

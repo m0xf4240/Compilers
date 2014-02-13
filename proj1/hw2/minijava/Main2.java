@@ -33,10 +33,34 @@ public class Main2 {
 	    errorHandler = new ErrorHandler(filename);
 
 	    Lexer l = new Lexer(new PushbackReader(in, 1024));
+	    System.out.println("[M1]");
+	   /* Token t;
+	    do {
+	    	t = l.next();
+	    } while (!(t instanceof EOF));*/
+	    System.out.println("[M2]"+l);
 	    Parser p = new Parser(l);
+	    
+	    System.out.println("[M3]"+p);
 	    Start start = p.parse();
+	    System.out.println("[M4]"+start);
+	    System.out.println("[M4]"+start.getPProgram());
+	    System.out.println("[M4P]"+((AProgram)start.getPProgram()).getPublic());
+	    System.out.println("[M4C]"+((AProgram)start.getPProgram()).getClasstok());
+	    System.out.println("[M4]"+((AProgram)start.getPProgram()).getId());
+	    System.out.println("[M4L]"+((AProgram)start.getPProgram()).getLbrace());
+	    //System.out.println("[M4M]"+((AProgram)start.getPProgram()).getMaindecl());
+	    System.out.print("[M4M]");
+	    for (PMaindecl e:((AProgram)start.getPProgram()).getMaindecl()){
+	    	System.out.println("\t"+e);
+	    }
+	    System.out.println("[M4R]"+((AProgram)start.getPProgram()).getRbrace());
+	    System.out.println("[M4E]"+start.getEOF());
 	    Typechecker typechecker = new Typechecker(start);
+	    System.out.println("[M5]"+typechecker);
 	    typechecker.phase1();
+	    
+	    System.out.println("[M6]"+start.getEOF().getLine());
 	}
 	catch(LexerException e) {
 	    System.err.println(e);

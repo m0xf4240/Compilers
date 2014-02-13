@@ -16,7 +16,7 @@ public class ErrorHandler {
     }
 
     public String getLongMessage(String s) {
-		String[] locus = s.replaceAll("(?i)(\\[)(.+?)(\\])(.+)", "$2").split(",");//regex to extract the numbers inside the brackets
+		String[] locus = s.replaceAll("(?i)(\\[)(.+?)(\\])(.+)", "$2").trim().split(",");//regex to extract the numbers inside the brackets
 		System.out.println("The error was detected at line "+locus[0]+", column "+locus[1]+".\nHere is line "+locus[0]+". The caret mark (^) indicates where the error was detected.");
 		try{
 			BufferedReader reader = new BufferedReader(new FileReader(filename));// the FileReader constructor can take a String filename
@@ -29,6 +29,7 @@ public class ErrorHandler {
 		} catch (Exception e){
 			System.out.println("Error reading File "+filename+".");
 		}
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		return "Bye.";
     }
 }
