@@ -1,0 +1,24 @@
+package minijava.ErrorHandler;
+import minijava.lexer.*;
+import java.io.StringReader;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.PushbackReader;
+
+import minijava.node.*;
+
+public class ErrorHandler {
+
+    String filename;
+
+    public ErrorHandler (String filename) {
+    }
+
+    /*=====================================
+      Prints more informative error message
+      ====================================*/
+    public String getLongMessage(String s) {
+	System.out.println("!!!!!");
+	throw new UnsupportedOperationException
+    }
+}

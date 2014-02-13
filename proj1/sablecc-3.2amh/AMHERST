@@ -1,0 +1,31 @@
+1/26/2010
+
+This version of sablecc includes changes to SableCC 3.2 made locally
+at Amherst College by Lyle A. McGeoch (lam@cs.amherst.edu).  Affected
+files in src/org/sablecc/sablecc are:
+
+SableCC.java:
+
+1.  Changed the description of the program to reflect the fact that
+this is the Amherst version.
+
+2.  Added --amh-dump as a new option.  This causes information on item
+sets to be dumped in the file "parser.dump", which is created in the
+user's current directory when sablecc is run.
+
+Grammar.java:
+
+1.  Modified to support creation of parser.dump.
+
+GenAnalyses.java:
+
+1.  Modified to enable creation of a new analysis program, AmhTraversal.java.
+
+analyses.txt:
+
+1.  Modified to support creation of AmhTraversal.java.
+
+parser.txt:
+
+1.  Modified so that "unchecked" warnings are not produced when a user
+compiles Parser.java as part of his or her compiler.
