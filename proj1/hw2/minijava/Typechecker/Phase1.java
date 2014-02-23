@@ -2,12 +2,18 @@
 
 package minijava.Typechecker;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import minijava.Type.Type;
 import minijava.node.*;
 
 public class Phase1
 {
-	public Phase1(Typechecker t){
+	Typechecker t;
 
+	public Phase1(Typechecker t){
+		this.t=t;
 	}
 
 	void process(Node n) {
@@ -22,144 +28,117 @@ public class Phase1
 
 	///////////////////////////////////////////////////////////////
 	void process(PProgram n) {
-		System.out.println("[P1PProg]"+n);
-		if (n instanceof AProgram) process((AProgram)n);
+		//n is the whole program
+		if (n instanceof AProgram){
+			process((AProgram)n);
+		}
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PProgram)");
 
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AProgram n) {
-		boolean debug=true;
-		if(debug){
-			System.out.println("[P1AProg]"+n);
-			System.out.println("[P1AProg]"+n.getPublic());				// yields TPublic
-			System.out.println("[P1AProg]"+n.getClasstok());				// yields TClasstok
-			System.out.println("[P1AProg]"+n.getId());				// yields TId
-			System.out.println("[P1AProg]"+n.getLbrace());				// yields TLbrace
-		}
-		
-		//classname doesnt match filename if(n.getId() != ) throw new UnsupportedOperationException ();     
-		
-		if(debug) System.out.println("[P1AProg]"+n.getMaindecl());
 		for (PMaindecl p : n.getMaindecl()){
-			if(debug) System.out.println("[P1AProgMainDecl]"+p);
+			//p is each block in the program
 			process(p);				// process(PMaindecl)
 		}
 		n.getRbrace();				// yields TRbrace
 
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PMaindecl n) {
-		if (n instanceof AVarMaindecl) process((AVarMaindecl)n);
-		else if (n instanceof AMethodMaindecl) process((AMethodMaindecl)n);
+		//case 1: block is a variable
+		if (n instanceof AVarMaindecl){
+			process((AVarMaindecl)n);
+		}
+		//case 2: block is a method
+		else if (n instanceof AMethodMaindecl){
+			process((AMethodMaindecl)n);
+		}
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PMaindecl)");
 
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AVarMaindecl n) {
-		System.out.println(n);
-		process(n.getPrivacy());			// process(PPrivacy)
-		n.getStatic();				// yields TStatic
-		process(n.getType());			// process(PType)
-		n.getId();				// yields TId
-		n.getSemi();				// yields TSemi
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
+		//t.createClassVar(String name, Type, Token ?name?)
+		t.createClassVar(n.getId().toString().trim(), t.getType(((AType)n.getType())), n.getId());
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AMethodMaindecl n) {
-		process(n.getPrivacy());			// process(PPrivacy)
-		n.getStatic();				// yields TStatic
-		process(n.getType());			// process(PType)
-		n.getId();				// yields TId
-		n.getLparen();				// yields TLparen
-		process(n.getParamlist());			// process(PParamlist)
-		n.getRparen();				// yields TRparen
-		n.getLbrace();				// yields TLbrace
-		for (PStmt p : n.getStmt())
-			process(p);				// process(PStmt)
-		n.getRbrace();				// yields TRbrace
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
+		//t.createMethod(String name, Type returnType, List parameterTypes, Token ?name?)
+		t.createMethod(n.getId().toString().trim(), t.getType((AType)n.getType()), process(n.getParamlist()), n.getId());
 	}
 
 	///////////////////////////////////////////////////////////////
-	void process(PParamlist n) {
-		if (n instanceof AListParamlist) process((AListParamlist)n);
-		else if (n instanceof AEmptyParamlist) process((AEmptyParamlist)n);
+	List<Type> process(PParamlist n) {
+		if (n instanceof AListParamlist){
+			return process((AListParamlist)n);
+		}
+		else if (n instanceof AEmptyParamlist){
+			return process((AEmptyParamlist)n);
+		}
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PParamlist)");
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
-	void process(AListParamlist n) {
-		process(n.getType());			// process(PType)
-		n.getId();				// yields TId
-		for (PParam p : n.getParam())
-			process(p);				// process(PParam)
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
+	List<Type> process(AListParamlist n) {
+		//put the parameters Types in n into a better list 
+		List<Type> paramList = new LinkedList<Type>();
+		paramList.add(t.getType(((AType)n.getType()).getId()));
+		for (PParam p : n.getParam()) {
+			paramList.add(process(p));				// process(PParam)
+		}
+		return paramList;
 	}
 
 	///////////////////////////////////////////////////////////////
-	void process(AEmptyParamlist n) {
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
+	List<Type> process(AEmptyParamlist n) {
+		return new LinkedList<Type>();
 	}
 
 	///////////////////////////////////////////////////////////////
-	void process(PParam n) {
-		if (n instanceof AParam) process((AParam)n);
+	Type process(PParam n) {
+		if (n instanceof AParam){
+			return process((AParam)n);
+		}
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PParam)");
 
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
-	void process(AParam n) {
-		n.getComma();				// yields TComma
-		process(n.getType());			// process(PType)
-		n.getId();				// yields TId
-
-		throw new UnsupportedOperationException ();     // remove when method is complete
+	Type process(AParam n) {
+		return t.getType(((AType)n.getType()));
 	}
 
-	///////////////////////////////////////////////////////////////
-	//TODO: return a token?
 	///////////////////////////////////////////////////////////////
 	void process(PPrivacy n) {
-		if (n instanceof APublicPrivacy) process((APublicPrivacy)n);
-		else if (n instanceof ABlankPrivacy) process((ABlankPrivacy)n);
+		if (n instanceof APublicPrivacy)  process((APublicPrivacy)n);
+		else if (n instanceof ABlankPrivacy)  process((ABlankPrivacy)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PPrivacy)");
+
 	}
 
 	///////////////////////////////////////////////////////////////
-	Token process(APublicPrivacy n) {
-		return n.getPublic();				// yields TPublic
+	void process(APublicPrivacy n) {
+		n.getPublic();				// yields TPublic
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(ABlankPrivacy n) {
 
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -172,23 +151,16 @@ public class Phase1
 	}
 
 	///////////////////////////////////////////////////////////////
-	//Does this handle arrays?
-	///////////////////////////////////////////////////////////////
 	void process(AType n) {
-		boolean db=false;
-		if(db){System.out.println("[PRO1]"+n);}
 		n.getId();				// yields TId
-		if(db){System.out.println("[PRO2]"+n.getId());}
-		if(db){System.out.println("[PRO3]"+n.getEmptydim());}
 		for (PEmptydim p : n.getEmptydim()){
-			if(db){System.out.println("[PRO4]"+p);}
 			process(p);				// process(PEmptydim)
 		}
-		//throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PStmt n) {
+
 		if (n instanceof AWhileStmt) process((AWhileStmt)n);
 		else if (n instanceof ADeclStmt) process((ADeclStmt)n);
 		else if (n instanceof ABlockStmt) process((ABlockStmt)n);
@@ -200,8 +172,8 @@ public class Phase1
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PStmt)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
+
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -249,9 +221,8 @@ public class Phase1
 
 	///////////////////////////////////////////////////////////////
 	void process(AExprStmt n) {
-		process(n.getExpr());			// process(PExpr)
-		n.getSemi();				// yields TSemi
-
+		// process(PExpr)
+		//n.getSemi();				// yields TSemi
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -261,7 +232,6 @@ public class Phase1
 		if (n.getExpr() != null)
 			process(n.getExpr());		// process(PExpr)
 		n.getSemi();				// yields TSemi
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -269,9 +239,9 @@ public class Phase1
 	void process(APrintStmt n) {
 		n.getPrint();				// yields TPrint
 		n.getLparen();				// yields TLparen
-		process(n.getExpr());			// process(PExpr)
-		n.getRparen();				// yields TRparen
-		n.getSemi();				// yields TSemi
+		// process(PExpr)
+		//n.getRparen();				// yields TRparen
+		//n.getSemi();				// yields TSemi
 
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
@@ -279,19 +249,18 @@ public class Phase1
 	///////////////////////////////////////////////////////////////
 	void process(AEmptyStmt n) {
 		n.getSemi();				// yields TSemi
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PExpr n) {
-		if (n instanceof AAssignExpr) process((AAssignExpr)n);
-		else if (n instanceof AExprExpr) process((AExprExpr)n);
+		if (n instanceof AAssignExpr)  process((AAssignExpr)n);
+		else if (n instanceof AExprExpr)  process((AExprExpr)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PExpr)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
+
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -300,13 +269,13 @@ public class Phase1
 		n.getAssign();				// yields TAssign
 		process(n.getExpr());			// process(PExpr)
 
+		n.getAssign();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AExprExpr n) {
 		process(n.getExpr10());			// process(PExpr10)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -317,8 +286,8 @@ public class Phase1
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PExpr10)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
+
 	}
 
 	///////////////////////////////////////////////////////////////
@@ -327,13 +296,13 @@ public class Phase1
 		n.getOr();				// yields TOr
 		process(n.getRight());			// process(PExpr20)
 
+		n.getOr();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AExprExpr10 n) {
 		process(n.getExpr20());			// process(PExpr20)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -344,7 +313,6 @@ public class Phase1
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PExpr20)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -354,25 +322,24 @@ public class Phase1
 		n.getAnd();				// yields TAnd
 		process(n.getRight());			// process(PExpr30)
 
+		n.getAnd();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AExprExpr20 n) {
 		process(n.getExpr30());			// process(PExpr30)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PExpr30 n) {
-		if (n instanceof AEqExpr30) process((AEqExpr30)n);
-		else if (n instanceof ANeExpr30) process((ANeExpr30)n);
-		else if (n instanceof AExprExpr30) process((AExprExpr30)n);
+		if (n instanceof AEqExpr30)  process((AEqExpr30)n);
+		else if (n instanceof ANeExpr30)  process((ANeExpr30)n);
+		else if (n instanceof AExprExpr30)  process((AExprExpr30)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PExpr30)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -382,6 +349,7 @@ public class Phase1
 		n.getEq();				// yields TEq
 		process(n.getRight());			// process(PExpr40)
 
+		n.getEq();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -391,27 +359,26 @@ public class Phase1
 		n.getNe();				// yields TNe
 		process(n.getRight());			// process(PExpr40)
 
+		n.getNe();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AExprExpr30 n) {
 		process(n.getExpr40());			// process(PExpr40)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PExpr40 n) {
-		if (n instanceof ALtExpr40) process((ALtExpr40)n);
-		else if (n instanceof ALeExpr40) process((ALeExpr40)n);
-		else if (n instanceof AGeExpr40) process((AGeExpr40)n);
-		else if (n instanceof AGtExpr40) process((AGtExpr40)n);
-		else if (n instanceof AExprExpr40) process((AExprExpr40)n);
+		if (n instanceof ALtExpr40)  process((ALtExpr40)n);
+		else if (n instanceof ALeExpr40)  process((ALeExpr40)n);
+		else if (n instanceof AGeExpr40)  process((AGeExpr40)n);
+		else if (n instanceof AGtExpr40)  process((AGtExpr40)n);
+		else if (n instanceof AExprExpr40)  process((AExprExpr40)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PExpr40)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -421,6 +388,7 @@ public class Phase1
 		n.getLt();				// yields TLt
 		process(n.getRight());			// process(PExpr50)
 
+		n.getLt();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -430,6 +398,7 @@ public class Phase1
 		n.getLe();				// yields TLe
 		process(n.getRight());			// process(PExpr50)
 
+		n.getLe();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -439,6 +408,7 @@ public class Phase1
 		n.getGe();				// yields TGe
 		process(n.getRight());			// process(PExpr50)
 
+		n.getGe();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -448,25 +418,24 @@ public class Phase1
 		n.getGt();				// yields TGt
 		process(n.getRight());			// process(PExpr50)
 
+		n.getGt();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AExprExpr40 n) {
 		process(n.getExpr50());			// process(PExpr50)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PExpr50 n) {
-		if (n instanceof APlusExpr50) process((APlusExpr50)n);
-		else if (n instanceof AMinusExpr50) process((AMinusExpr50)n);
-		else if (n instanceof ATermExpr50) process((ATermExpr50)n);
+		if (n instanceof APlusExpr50)  process((APlusExpr50)n);
+		else if (n instanceof AMinusExpr50)  process((AMinusExpr50)n);
+		else if (n instanceof ATermExpr50)  process((ATermExpr50)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PExpr50)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -476,6 +445,7 @@ public class Phase1
 		n.getPlus();				// yields TPlus
 		process(n.getRight());			// process(PTerm)
 
+		n.getPlus();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -485,26 +455,25 @@ public class Phase1
 		n.getMinus();				// yields TMinus
 		process(n.getRight());			// process(PTerm)
 
+		n.getMinus();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(ATermExpr50 n) {
 		process(n.getTerm());			// process(PTerm)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PTerm n) {
-		if (n instanceof ATimesTerm) process((ATimesTerm)n);
-		else if (n instanceof ADivTerm) process((ADivTerm)n);
-		else if (n instanceof AModTerm) process((AModTerm)n);
-		else if (n instanceof AFactorTerm) process((AFactorTerm)n);
+		if (n instanceof ATimesTerm)  process((ATimesTerm)n);
+		else if (n instanceof ADivTerm)  process((ADivTerm)n);
+		else if (n instanceof AModTerm)  process((AModTerm)n);
+		else if (n instanceof AFactorTerm)  process((AFactorTerm)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PTerm)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -514,6 +483,7 @@ public class Phase1
 		n.getTimes();				// yields TTimes
 		process(n.getRight());			// process(PFactor)
 
+		n.getTimes();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -523,6 +493,7 @@ public class Phase1
 		n.getDiv();				// yields TDiv
 		process(n.getRight());			// process(PFactor)
 
+		n.getDiv();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -532,40 +503,37 @@ public class Phase1
 		n.getMod();				// yields TMod
 		process(n.getRight());			// process(PFactor)
 
+		n.getMod();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AFactorTerm n) {
 		process(n.getFactor());			// process(PFactor)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PFactor n) {
-		if (n instanceof APrimaryFactor) process((APrimaryFactor)n);
-		else if (n instanceof AIdFactor) process((AIdFactor)n);
-		else if (n instanceof ALengthFactor) process((ALengthFactor)n);
-		else if (n instanceof ALength2Factor) process((ALength2Factor)n);
+		if (n instanceof APrimaryFactor)  process((APrimaryFactor)n);
+		else if (n instanceof AIdFactor)  process((AIdFactor)n);
+		else if (n instanceof ALengthFactor)  process((ALengthFactor)n);
+		else if (n instanceof ALength2Factor)  process((ALength2Factor)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PFactor)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(APrimaryFactor n) {
 		process(n.getPrimary());			// process(PPrimary)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AIdFactor n) {
 		n.getId();				// yields TId
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -575,6 +543,7 @@ public class Phase1
 		n.getDot();				// yields TDot
 		n.getLength();				// yields TLength
 
+		n.getId();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -586,17 +555,17 @@ public class Phase1
 		n.getLparen();				// yields TLparen
 		n.getRparen();				// yields TRparen
 
+		n.getId();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PPrimary n) {
-		if (n instanceof ANewarrayPrimary) process((ANewarrayPrimary)n);
-		else if (n instanceof APrimary2Primary) process((APrimary2Primary)n);
+		if (n instanceof ANewarrayPrimary)  process((ANewarrayPrimary)n);
+		else if (n instanceof APrimary2Primary)  process((APrimary2Primary)n);
 		else 
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PPrimary)");
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -610,20 +579,20 @@ public class Phase1
 		for (PEmptydim p : n.getEmptydim())
 			process(p);				// process(PEmptydim)
 
+		n.getId();
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(APrimary2Primary n) {
 		process(n.getPrimary2());			// process(PPrimary2)
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(PPrimary2 n) {
-		if (n instanceof AIconstPrimary2) process((AIconstPrimary2)n);
-		else if (n instanceof ASconstPrimary2) process((ASconstPrimary2)n);
+		if (n instanceof AIconstPrimary2)  process((AIconstPrimary2)n);
+		else if (n instanceof ASconstPrimary2)  process((ASconstPrimary2)n);
 		else if (n instanceof ANullPrimary2) process((ANullPrimary2)n);
 		else if (n instanceof ATruePrimary2) process((ATruePrimary2)n);
 		else if (n instanceof AFalsePrimary2) process((AFalsePrimary2)n);
@@ -640,7 +609,6 @@ public class Phase1
 	///////////////////////////////////////////////////////////////
 	void process(AIconstPrimary2 n) {
 		n.getIconst();				// yields TIconst
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
@@ -799,15 +767,12 @@ public class Phase1
 			throw new RuntimeException (this.getClass() + 
 					": unexpected subclass " + n.getClass() + " in process(PEmptydim)");
 
-		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
 
 	///////////////////////////////////////////////////////////////
 	void process(AEmptydim n) {
 		n.getLbrack();				// yields TLbrack
 		n.getRbrack();				// yields TRbrack
-
 		throw new UnsupportedOperationException ();     // remove when method is complete
 	}
-
 }

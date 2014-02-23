@@ -134,13 +134,9 @@ public class Parser
 				ign = null;
 			}
 
-			System.out.println("[ParPeek]"+this.lexer.peek());
-
 			this.last_pos = this.lexer.peek().getPos();
 			this.last_line = this.lexer.peek().getLine();
 			this.last_token = this.lexer.peek();
-
-			//System.out.println("[ParStats]"+this.last_pos+" | "+this.last_line+" | "+this.last_token);
 
 			int index = index(this.lexer.peek());
 			this.action[0] = Parser.actionTable[state()][0][1];
@@ -169,12 +165,6 @@ public class Parser
 				}
 			}
 
-			System.out.print("[ParAct]");
-			for(int i:this.action){
-				System.out.print(i+", ");
-			}
-			System.out.println();
-			
 			switch(this.action[0])
 			{
 			case SHIFT:
@@ -182,7 +172,6 @@ public class Parser
 				ArrayList list = new ArrayList();
 				
 				list.add(this.lexer.next());
-				System.out.println("[ParAdd]"+list);
 				push(this.action[1], list, false);
 			}
 			break;
